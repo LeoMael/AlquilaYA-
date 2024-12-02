@@ -6,21 +6,32 @@ session_start();
 // Número de casas por página
 $casas_por_pagina = 5;
 
-// Página actual
+// Página actual (validar que sea un número válido)
 $pagina_actual = isset($_GET['pagina']) ? (int)$_GET['pagina'] : 1;
+if ($pagina_actual < 1) {
+    $pagina_actual = 1;  // Asegurar que la página sea al menos 1
+}
+
+// Calcular el desplazamiento para la consulta SQL
 $offset = ($pagina_actual - 1) * $casas_por_pagina;
 
 // Contar el número total de casas disponibles
 $sql_total_casas = "SELECT COUNT(*) as total FROM casas";
 $result_total = $conn->query($sql_total_casas);
-$total_casas = $result_total->fetch_assoc()['total'];
+
+if ($result_total) {
+    $total_casas = $result_total->fetch_assoc()['total'];
+} else {
+    die("Error al obtener el número total de casas: " . $conn->error);  // Manejo de errores
+}
 
 // Calcular el número total de páginas
 $total_paginas = ceil($total_casas / $casas_por_pagina);
 
 // Obtener casas para la página actual
 $sql_casas = "SELECT casas.id_casa, casas.direccion, detalles_casas.descripcion, 
-              AVG(valoracion_casas.calificacion) as calificacion_promedio
+                     AVG(valoracion_casas.calificacion) as calificacion_promedio,
+                     casas.latitud, casas.logitud  
               FROM casas
               LEFT JOIN detalles_casas ON casas.id_casa = detalles_casas.id_casa
               LEFT JOIN valoracion_casas ON casas.id_casa = valoracion_casas.id_casa
@@ -28,6 +39,35 @@ $sql_casas = "SELECT casas.id_casa, casas.direccion, detalles_casas.descripcion,
               LIMIT $casas_por_pagina OFFSET $offset";
 $result_casas = $conn->query($sql_casas);
 ?>
+<?php
+
+// Almacenar los datos en un array
+$casas_coordenadas = []; // Nuevo array para latitud y logitud
+if ($result_casas) {
+    while ($fila = $result_casas->fetch_assoc()) {
+        // Verificar y agregar solo latitud y longitud si están definidas y son válidas
+        if (is_numeric($fila['latitud']) && is_numeric($fila['logitud'])) {
+            $casas_coordenadas[] = [
+                'latitud' => (float)$fila['latitud'],
+                'logitud' => (float)$fila['logitud'],
+                'direccion' => $fila['direccion'],  // Agregar la dirección de la casa
+            ];
+        }
+    }
+} else {
+    // Manejo de errores si la consulta falla
+    $casas_coordenadas = [];
+}
+
+$casas_coordenadas_json = json_encode($casas_coordenadas);
+$result_casas = $conn->query($sql_casas);
+
+//echo '<pre>';
+//print_r($casas_coordenadas);
+//echo '</pre>';
+
+?>
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -37,6 +77,8 @@ $result_casas = $conn->query($sql_casas);
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <!-- Tu archivo de estilos personalizado -->
     <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
     <style>
         /* Hacer que el mapa sea fijo cuando se hace scroll */
         .sticky-map {
@@ -182,7 +224,7 @@ $result_casas = $conn->query($sql_casas);
                 <!-- Mapa de Ubicaciones (Placeholder) -->
                 <div class="sticky-map">
                     <h3>Mapa de Ubicaciones</h3>
-                    <div style="width:100%;height:100%;background-color:#e9ecef;text-align:center;line-height:500px;">
+                    <div id="map" style="width:98%;height:90%;background-color:#e9ecef;text-align:center;line-height:500px;">
                         <!-- Aquí irá el mapa interactivo -->
                         <p>Mapa en construcción</p>
                     </div>
@@ -190,7 +232,12 @@ $result_casas = $conn->query($sql_casas);
             </div>
         </div>
     </div>
-
+    <script>
+         window.casasCoordenadas = <?php echo $casas_coordenadas_json; ?>;
+    </script>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
+    <script src="js/mapp.js"></script>
     <!-- Scripts de Bootstrap y jQuery -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <!-- Popper.js necesario para los modales de Bootstrap -->
