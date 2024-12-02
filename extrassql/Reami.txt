@@ -1,0 +1,22 @@
+Para probar el inicio de sesión, puedes utilizar los siguientes usuarios:
+
+Estudiantes
+
+Usuario 1:
+Email: carlos.perez@example.com
+Contraseña: password
+
+Usuario 2:
+
+Email: maria.gonzalez@example.com
+Contraseña: password
+
+Arrendadores
+Usuario 1:
+
+Email: roberto.martinez@example.com
+Contraseña: password
+Usuario 2:
+
+Email: elena.hernandez@example.com
+Contraseña: password

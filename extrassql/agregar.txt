@@ -1,0 +1,140 @@
+ALTER TABLE `estudiantes` ADD COLUMN `password` VARCHAR(255) NOT NULL AFTER `carrera`;
+ALTER TABLE `arrendadores` ADD COLUMN `password` VARCHAR(255) NOT NULL AFTER `email`;
+
+-- Insertar estudiantes
+INSERT INTO `estudiantes` (`id_estudiante`, `nombre`, `apellidos`, `dni`, `celular`, `email`, `carrera`, `password`) VALUES
+(1, 'Carlos', 'Pérez', '12345678', '987654321', 'carlos.perez@example.com', 'Ingeniería Civil', '$2y$10$e0NRVdVlEex9YQ6SNXuhcO4JvYpL7t4E3Qk6rMNjqOEBNPV5x2ufK'),
+(2, 'María', 'González', '87654321', '987654322', 'maria.gonzalez@example.com', 'Arquitectura', '$2y$10$e0NRVdVlEex9YQ6SNXuhcO4JvYpL7t4E3Qk6rMNjqOEBNPV5x2ufK'),
+(3, 'Luis', 'Ramírez', '11223344', '987654323', 'luis.ramirez@example.com', 'Medicina', '$2y$10$e0NRVdVlEex9YQ6SNXuhcO4JvYpL7t4E3Qk6rMNjqOEBNPV5x2ufK'),
+(4, 'Ana', 'López', '44332211', '987654324', 'ana.lopez@example.com', 'Derecho', '$2y$10$e0NRVdVlEex9YQ6SNXuhcO4JvYpL7t4E3Qk6rMNjqOEBNPV5x2ufK'),
+(5, 'Jorge', 'Sánchez', '55667788', '987654325', 'jorge.sanchez@example.com', 'Ingeniería de Sistemas', '$2y$10$e0NRVdVlEex9YQ6SNXuhcO4JvYpL7t4E3Qk6rMNjqOEBNPV5x2ufK'),
+(6, 'Lucía', 'Torres', '88776655', '987654326', 'lucia.torres@example.com', 'Economía', '$2y$10$e0NRVdVlEex9YQ6SNXuhcO4JvYpL7t4E3Qk6rMNjqOEBNPV5x2ufK'),
+(7, 'Miguel', 'Flores', '99887766', '987654327', 'miguel.flores@example.com', 'Contabilidad', '$2y$10$e0NRVdVlEex9YQ6SNXuhcO4JvYpL7t4E3Qk6rMNjqOEBNPV5x2ufK'),
+(8, 'Sofía', 'Díaz', '66778899', '987654328', 'sofia.diaz@example.com', 'Psicología', '$2y$10$e0NRVdVlEex9YQ6SNXuhcO4JvYpL7t4E3Qk6rMNjqOEBNPV5x2ufK'),
+(9, 'Diego', 'Castro', '22334455', '987654329', 'diego.castro@example.com', 'Administración', '$2y$10$e0NRVdVlEex9YQ6SNXuhcO4JvYpL7t4E3Qk6rMNjqOEBNPV5x2ufK'),
+(10, 'Camila', 'Vega', '55443322', '987654330', 'camila.vega@example.com', 'Comunicación', '$2y$10$e0NRVdVlEex9YQ6SNXuhcO4JvYpL7t4E3Qk6rMNjqOEBNPV5x2ufK');
+
+-- Insertar arrendadores
+INSERT INTO `arrendadores` (`id_arrendador`, `nombre`, `apellido`, `dni`, `celular`, `email`, `password`) VALUES
+(1, 'Roberto', 'Martínez', '11112222', '912345678', 'roberto.martinez@example.com', '$2y$10$e0NRVdVlEex9YQ6SNXuhcO4JvYpL7t4E3Qk6rMNjqOEBNPV5x2ufK'),
+(2, 'Elena', 'Hernández', '33334444', '912345679', 'elena.hernandez@example.com', '$2y$10$e0NRVdVlEex9YQ6SNXuhcO4JvYpL7t4E3Qk6rMNjqOEBNPV5x2ufK'),
+(3, 'Fernando', 'Rojas', '55556666', '912345680', 'fernando.rojas@example.com', '$2y$10$e0NRVdVlEex9YQ6SNXuhcO4JvYpL7t4E3Qk6rMNjqOEBNPV5x2ufK'),
+(4, 'Laura', 'García', '77778888', '912345681', 'laura.garcia@example.com', '$2y$10$e0NRVdVlEex9YQ6SNXuhcO4JvYpL7t4E3Qk6rMNjqOEBNPV5x2ufK'),
+(5, 'Andrés', 'Morales', '99990000', '912345682', 'andres.morales@example.com', '$2y$10$e0NRVdVlEex9YQ6SNXuhcO4JvYpL7t4E3Qk6rMNjqOEBNPV5x2ufK');
+
+-- Insertar casas
+INSERT INTO `casas` (`id_casa`, `id_arrendador`, `latitud`, `logitud`, `direccion`) VALUES
+(1, 1, '-15.840221', '-70.021881', 'Av. La Torre 123'),
+(2, 1, '-15.841221', '-70.022881', 'Jr. Lima 456'),
+(3, 2, '-15.842221', '-70.023881', 'Calle Arequipa 789'),
+(4, 2, '-15.843221', '-70.024881', 'Jr. Tacna 101'),
+(5, 3, '-15.844221', '-70.025881', 'Av. Costanera 202'),
+(6, 3, '-15.845221', '-70.026881', 'Calle Cusco 303'),
+(7, 4, '-15.846221', '-70.027881', 'Jr. Puno 404'),
+(8, 4, '-15.847221', '-70.028881', 'Av. Floral 505'),
+(9, 5, '-15.848221', '-70.029881', 'Calle Moquegua 606'),
+(10, 5, '-15.849221', '-70.030881', 'Jr. Ayacucho 707');
+
+-- Insertar detalles de casas
+INSERT INTO `detalles_casas` (`id_detalle_casa`, `id_casa`, `descripcion`) VALUES
+(1, 1, 'Casa amplia y luminosa cerca al centro de Puno.'),
+(2, 2, 'Agradable casa con jardín y vista al lago Titicaca.'),
+(3, 3, 'Casa moderna con todas las comodidades.'),
+(4, 4, 'Casa tradicional con espacios acogedores.'),
+(5, 5, 'Casa cercana a la universidad y a zonas comerciales.'),
+(6, 6, 'Casa tranquila en zona residencial.'),
+(7, 7, 'Casa con excelente ubicación y transporte público cercano.'),
+(8, 8, 'Casa espaciosa ideal para estudiantes.'),
+(9, 9, 'Casa con ambiente familiar y seguro.'),
+(10, 10, 'Casa económica y bien ubicada.');
+
+-- Insertar cuartos
+INSERT INTO `cuartos` (`id_cuarto`, `id_casa`, `piso`, `precio`, `metroscuadrados`) VALUES
+(1, 1, 1, 350, 15),
+(2, 1, 2, 400, 18),
+(3, 2, 1, 380, 16),
+(4, 2, 2, 420, 20),
+(5, 3, 1, 360, 14),
+(6, 3, 2, 390, 17),
+(7, 4, 1, 370, 15),
+(8, 4, 2, 410, 19),
+(9, 5, 1, 340, 13),
+(10, 5, 2, 380, 16),
+(11, 6, 1, 350, 15),
+(12, 6, 2, 390, 17),
+(13, 7, 1, 360, 14),
+(14, 7, 2, 400, 18),
+(15, 8, 1, 370, 15);
+
+-- Insertar detalles de cuartos
+INSERT INTO `detalles_cuartos` (`id_detalle_cuarto`, `id_cuarto`, `descripcion`) VALUES
+(1, 1, 'Cuarto con vista al jardín, incluye cama y escritorio.'),
+(2, 2, 'Habitación amplia con baño privado.'),
+(3, 3, 'Cuarto luminoso con armario empotrado.'),
+(4, 4, 'Habitación con balcón y excelente vista.'),
+(5, 5, 'Cuarto cómodo cerca a la entrada principal.'),
+(6, 6, 'Habitación silenciosa ideal para el estudio.'),
+(7, 7, 'Cuarto acogedor con buena iluminación.'),
+(8, 8, 'Habitación espaciosa con acceso a terraza.'),
+(9, 9, 'Cuarto económico con servicios básicos.'),
+(10, 10, 'Habitación con escritorio y silla de estudio.'),
+(11, 11, 'Cuarto con cama matrimonial y amplio espacio.'),
+(12, 12, 'Habitación con baño compartido y vista a la calle.'),
+(13, 13, 'Cuarto sencillo y cómodo para estudiantes.'),
+(14, 14, 'Habitación con closet y buena ventilación.'),
+(15, 15, 'Cuarto disponible con todos los servicios incluidos.');
+
+-- Insertar valoraciones de casas
+INSERT INTO `valoracion_casas` (`id_valoracion_casa`, `id_casa`, `calificacion`, `comentario`, `id_estudiante`, `fecha`) VALUES
+(1, 1, '4', 'Excelente ubicación y ambiente tranquilo.', 1, '2024-12-01'),
+(2, 2, '5', 'La casa es muy cómoda y los dueños son amables.', 2, '2024-12-02'),
+(3, 3, '3', 'Buena casa pero podría mejorar en limpieza.', 3, '2024-12-03'),
+(4, 4, '4', 'Me gustó la casa, cerca a la universidad.', 4, '2024-12-04'),
+(5, 5, '5', 'Excelente relación calidad-precio.', 5, '2024-12-05'),
+(6, 6, '4', 'Lugar tranquilo y seguro.', 6, '2024-12-06'),
+(7, 7, '3', 'La casa es antigua pero funcional.', 7, '2024-12-07'),
+(8, 8, '5', 'Muy buena casa, recomendada.', 8, '2024-12-08'),
+(9, 9, '4', 'Buen ambiente y propietarios amables.', 9, '2024-12-09'),
+(10, 10, '3', 'Casa económica, cumple con lo básico.', 10, '2024-12-10');
+
+-- Insertar valoraciones de cuartos
+INSERT INTO `valoracion_cuartos` (`id_valoracion_cuarto`, `id_cuarto`, `calificacion`, `comentario`, `fecha`, `id_estudiante`) VALUES
+(1, 1, '4', 'Cuarto cómodo y bien iluminado.', '2024-12-01', 1),
+(2, 2, '5', 'Excelente habitación con baño privado.', '2024-12-02', 2),
+(3, 3, '3', 'El cuarto es pequeño pero acogedor.', '2024-12-03', 3),
+(4, 4, '4', 'Buena habitación con vista agradable.', '2024-12-04', 4),
+(5, 5, '5', 'Cuarto perfecto para estudiar y descansar.', '2024-12-05', 5),
+(6, 6, '4', 'Habitación silenciosa, ideal para estudiar.', '2024-12-06', 6),
+(7, 7, '3', 'El cuarto es sencillo pero cumple su función.', '2024-12-07', 7),
+(8, 8, '5', 'Habitación amplia y cómoda.', '2024-12-08', 8),
+(9, 9, '4', 'Buen cuarto a precio razonable.', '2024-12-09', 9),
+(10, 10, '3', 'Habitación básica, puede mejorar.', '2024-12-10', 10);
+
+-- Insertar estados
+INSERT INTO `estados` (`id_estado`, `estado`) VALUES
+(1, 'Disponible'),
+(2, 'Ocupado'),
+(3, 'Reservado');
+
+-- Insertar alquileres
+INSERT INTO `alquileres` (`id_alquiler`, `id_cuarto`, `id_estudiante`, `id_estado`) VALUES
+(1, 1, 1, 2),
+(2, 2, 2, 2),
+(3, 3, 3, 2),
+(4, 4, 4, 2),
+(5, 5, 5, 2),
+(6, 6, 6, 2),
+(7, 7, 7, 2),
+(8, 8, 8, 2),
+(9, 9, 9, 2),
+(10, 10, 10, 2);
+
+ALTER TABLE `estudiantes` MODIFY `id_estudiante` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+ALTER TABLE `arrendadores` MODIFY `id_arrendador` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+ALTER TABLE `casas` MODIFY `id_casa` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+ALTER TABLE `cuartos` MODIFY `id_cuarto` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+ALTER TABLE `detalles_casas` MODIFY `id_detalle_casa` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+ALTER TABLE `detalles_cuartos` MODIFY `id_detalle_cuarto` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+ALTER TABLE `valoracion_casas` MODIFY `id_valoracion_casa` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+ALTER TABLE `valoracion_cuartos` MODIFY `id_valoracion_cuarto` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+ALTER TABLE `alquileres` MODIFY `id_alquiler` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
