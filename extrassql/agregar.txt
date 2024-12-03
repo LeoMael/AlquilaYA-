@@ -165,4 +165,7 @@ ADD COLUMN `descripcion` TEXT AFTER `direccion`;
 
 ALTER TABLE `casas` ADD COLUMN `imagen` VARCHAR(255) AFTER `longitud`;
 ALTER TABLE `cuartos` ADD COLUMN `imagen` VARCHAR(255) AFTER `metroscuadrados`;
+ALTER TABLE cuartos 
+ADD COLUMN id_estado INT NOT NULL DEFAULT 1,
+ADD FOREIGN KEY (id_estado) REFERENCES estados(id_estado) ON DELETE RESTRICT ON UPDATE CASCADE;
 

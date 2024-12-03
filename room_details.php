@@ -105,64 +105,205 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['agregar_opinion'])) {
 <head>
     <meta charset="UTF-8">
     <title>Detalles del Cuarto - AlquilaYA!</title>
-    <!-- Enlaces a CSS de Bootstrap para estilos rápidos -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <!-- Tu archivo de estilos personalizado -->
-    <link rel="stylesheet" href="css/styles.css">
+    <!-- Enlaces a CSS de Bootstrap 5 para estilos modernos -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
+    <!-- Font Awesome para íconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+    <!-- Enlace a la fuente Kaushan Script -->
+    <link href="https://fonts.googleapis.com/css2?family=Kaushan+Script&display=swap" rel="stylesheet">
     <style>
+        
         /* Estilos personalizados */
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .navbar-brand {
+            
+            color: #dc3545 !important;
+        }
+        .carousel-item img {
+            height: 500px;
+            object-fit: cover;
+        }
         .separator {
-            border-top: 1px solid #ccc;
+            border-top: 2px solid #dc3545;
             margin: 20px 0;
         }
         .anfitrion-section {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-bottom: 30px;
         }
         .ratings-summary {
-            max-width: 300px;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
-        .carousel-item img {
-            height: 400px;
-            object-fit: cover;
+        .media-body {
+            background-color: #ffffff;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
+        .progress {
+            height: 20px;
+        }
+        .progress-bar {
+            background-color: #dc3545;
+        }
+        .btn-contact {
+            background-color: #28a745;
+            color: white;
+        }
+        .btn-contact:hover {
+            background-color: #218838;
+            color: white;
+        }
+        .opinion-card {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .opinion-card h5 {
+            color: #dc3545;
+        }
+        .form-opinion {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-top: 30px;
+        }
+        /* Navegación */
+        .navbar-brand {
+            font-family: 'Kaushan Script', cursive;
+            font-size: 1.8rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            color: #dc3545 !important; /* text-danger */
+        }
+        .navbar-light .navbar-nav .nav-link {
+            color: #495057;
+            font-weight: 600;
+        }
+        .navbar-light .navbar-nav .nav-link.text-primary {
+            color: #0d6efd !important;
+        }
+        .navbar-light .navbar-nav .nav-link.text-success {
+            color: #198754 !important;
+        }
+        .navbar-light .navbar-nav .nav-link.text-danger {
+            color: #dc3545 !important;
+        }
+        .navbar-light .navbar-nav .nav-link:hover {
+            color: #0d6efd !important;
+        }
+        /* Separador debajo de la navbar */
+        .navbar {
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            background-color: #ffffff !important; /* Fondo blanco */
+        }
+        /* Texto central en Inika */
+        .navbar-text {
+            font-family: 'Inika', serif;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+        }
+        /* Icono al lado del texto central */
+        .navbar-text .fa-map-marker-alt {
+            margin-right: 8px;
+            color: #0d6efd;
+        }
+        .navbar-light .navbar-nav .nav-link {
+            color: #495057;
+            font-weight: 600;
+            font-family: 'Inria Sans', sans-serif; /* Aplicar Inria Sans */
+        }
+        
     </style>
 </head>
 <body>
-    <!-- Navegación -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <a class="navbar-brand" href="index.php">AlquilaYA!</a>
-        <div class="navbar-nav">
-            <?php
-            if (isset($_SESSION['tipo_usuario'])) {
-                if ($_SESSION['tipo_usuario'] == 'estudiante') {
-                    echo '<a class="nav-item nav-link" href="estudiante/profile.php">Mi Perfil</a>';
-                } elseif ($_SESSION['tipo_usuario'] == 'arrendador') {
-                    echo '<a class="nav-item nav-link" href="arrendador/dashboard.php">Mi Panel</a>';
-                }
-                echo '<a class="nav-item nav-link" href="logout.php">Cerrar Sesión</a>';
-            } else {
-                echo '<a class="nav-item nav-link" href="login.php">Iniciar Sesión</a>';
-                echo '<a class="nav-item nav-link" href="register.php">Registrarse</a>';
-            }
-            ?>
+    <!-- Barra de Navegación -->
+    <nav class="navbar navbar-expand-lg navbar-light border-bottom">
+        <div class="container">
+            <!-- Logo -->
+            <a class="navbar-brand text-danger" href="index.php">
+                AlquilaYA!
+            </a>
+
+            <!-- Botón de colapso para dispositivos pequeños -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <!-- Menú -->
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <!-- Texto centrado con ícono -->
+                <div class="mx-auto d-none d-lg-flex align-items-center">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span class="navbar-text text-secondary fs-5 ms-2">
+                        Encuentra tu alojamiento ideal en Puno
+                    </span>
+                </div>
+                
+                <!-- Opciones del menú -->
+                <ul class="navbar-nav ms-auto">
+                    <?php
+                    if (isset($_SESSION['tipo_usuario'])) {
+                        if ($_SESSION['tipo_usuario'] == 'estudiante') {
+                            echo '<li class="nav-item"><a class="nav-link text-primary fw-semibold" href="estudiante/profile.php">Mi Perfil</a></li>';
+                        } elseif ($_SESSION['tipo_usuario'] == 'arrendador') {
+                            echo '<li class="nav-item"><a class="nav-link text-primary fw-semibold" href="arrendador/dashboard.php">Mi Panel</a></li>';
+                        }
+                        echo '<li class="nav-item"><a class="nav-link text-danger fw-semibold" href="logout.php">Cerrar Sesión</a></li>';
+                    } else {
+                        echo '<li class="nav-item"><a class="nav-link text-primary fw-semibold" href="login.php">Iniciar Sesión</a></li>';
+                        echo '<li class="nav-item"><a class="nav-link text-success fw-semibold" href="register.php">Registrarse</a></li>';
+                    }
+                    ?>
+                </ul>
+            </div>
         </div>
     </nav>
 
     <!-- Contenido Principal -->
-    <div class="container mt-4">
+    <div class="container mt-5">
         <!-- Carrusel de Imágenes del Cuarto -->
-        <div id="carouselImages" class="carousel slide" data-ride="carousel">
+        <div id="carouselImages" class="carousel slide mb-4" data-bs-ride="carousel">
+            <div class="carousel-indicators">
+                <?php
+                if (count($imagenes) > 0) {
+                    for ($i = 0; $i < count($imagenes); $i++) {
+                        echo '<button type="button" data-bs-target="#carouselImages" data-bs-slide-to="' . $i . '"' . ($i === 0 ? ' class="active" aria-current="true"' : '') . ' aria-label="Slide ' . ($i + 1) . '"></button>';
+                    }
+                } else {
+                    echo '<button type="button" data-bs-target="#carouselImages" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>';
+                }
+                ?>
+            </div>
             <div class="carousel-inner">
                 <?php
                 if (count($imagenes) > 0) {
                     $active = 'active';
                     foreach ($imagenes as $imagen) {
                         echo '<div class="carousel-item ' . $active . '">';
-                        echo '<img src="uploads/' . $imagen . '" class="d-block w-100" alt="Imagen del cuarto">';
+                        echo '<img src="uploads/' . htmlspecialchars($imagen) . '" class="d-block w-100" alt="Imagen del cuarto">';
                         echo '</div>';
-                        $active = ''; // Después del primer elemento, no necesitamos la clase 'active'
+                        $active = '';
                     }
                 } else {
                     echo '<div class="carousel-item active">';
@@ -171,84 +312,62 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['agregar_opinion'])) {
                 }
                 ?>
             </div>
-            <a class="carousel-control-prev" href="#carouselImages" role="button" data-slide="prev">
-                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                <span class="sr-only">Anterior</span>
-            </a>
-            <a class="carousel-control-next" href="#carouselImages" role="button" data-slide="next">
-                <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                <span class="sr-only">Siguiente</span>
-            </a>
+            <button class="carousel-control-prev" type="button" data-bs-target="#carouselImages" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon bg-dark rounded-circle p-3" aria-hidden="true"></span>
+                <span class="visually-hidden">Anterior</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#carouselImages" data-bs-slide="next">
+                <span class="carousel-control-next-icon bg-dark rounded-circle p-3" aria-hidden="true"></span>
+                <span class="visually-hidden">Siguiente</span>
+            </button>
         </div>
 
         <!-- Dirección del Cuarto -->
-        <h2 class="mt-3"><?php echo htmlspecialchars($cuarto['direccion']); ?></h2>
+        <h2 class="mb-3 text-center text-md-start"><?php echo htmlspecialchars($cuarto['direccion']); ?></h2>
 
         <!-- Separador -->
         <div class="separator"></div>
 
         <!-- Nombre del Anfitrión y Botón "Contáctame" -->
         <div class="anfitrion-section">
-            <h3>Anfitrión: <?php echo htmlspecialchars($cuarto['nombre_arrendador']); ?></h3>
+            <div>
+                <h4>Anfitrión: <?php echo htmlspecialchars($cuarto['nombre_arrendador']); ?></h4>
+                <p class="mb-0"><i class="fas fa-phone-alt text-success me-2"></i><?php echo htmlspecialchars($cuarto['celular']); ?></p>
+                <p class="mb-0"><i class="fas fa-envelope text-primary me-2"></i><?php echo htmlspecialchars($cuarto['email']); ?></p>
+            </div>
             <?php
-            // Suponiendo que el número de celular del arrendador está almacenado en $arrendador['celular']
-            // Formateamos el número sin el '+' y con el formato internacional adecuado
-            $telefono_arrendador = $cuarto['celular'];  // Asegúrate de obtener el número del arrendador
-
-            // Si deseas agregar un mensaje predefinido al inicio de la conversación
+            // Formatear el número sin el '+' y con el formato internacional adecuado
+            $telefono_arrendador = preg_replace('/\D/', '', $cuarto['celular']);
             $mensaje = "Hola, estoy interesado en el cuarto con ID: $id_cuarto.";
-
             $whatsapp_url = "https://wa.me/$telefono_arrendador?text=" . urlencode($mensaje);
             ?>
-
-            <!-- Botón para redirigir al WhatsApp -->
-            <a href="<?php echo $whatsapp_url; ?>" class="btn btn-primary" target="_blank">Contáctame</a>
+            <a href="<?php echo $whatsapp_url; ?>" class="btn btn-contact"><i class="fab fa-whatsapp me-2"></i>Contáctame</a>
         </div>
 
         <!-- Descripción del Cuarto -->
-        <div class="mt-3">
+        <div class="mt-4">
             <h4>Descripción del Cuarto</h4>
-            <p><?php echo htmlspecialchars($cuarto['descripcion']); ?></p>
-            <?php 
-            // Asegúrate de que $cuarto['estado_cuarto'] contiene el nombre del estado (no el ID).
-            $estado = isset($cuarto['estado_cuarto']) ? $cuarto['estado_cuarto'] : 'Disponible';
-
-            echo '<p><strong>Estado: </strong>' . $estado . '</p>';
-            ?>
-            <?php
-            // Suponiendo que $cuarto es el array que contiene el resultado de la consulta
-            $celular_arrendador = $cuarto['celular'];  // Accedemos directamente a 'celular' que es el alias de la columna 'arrendadores.celular'
-
-            echo '<p><strong>Celular del arrendador: </strong>' . $celular_arrendador . '</p>';
-            ?>
-            <?php
-            // Suponiendo que $cuarto es el array que contiene el resultado de la consulta
-            $email_arrendador = $cuarto['email'];  // Accedemos a 'email' de los resultados
-
-            echo '<p><strong>Email del arrendador: </strong>' . $email_arrendador . '</p>';
-            ?>
-
-            
-            <p><strong>Precio:</strong> S/.<?php echo $cuarto['precio']; ?></p>
-            <p><strong>Tamaño:</strong> <?php echo $cuarto['metroscuadrados']; ?> m²</p>
+            <p><?php echo nl2br(htmlspecialchars($cuarto['descripcion'])); ?></p>
+            <p><strong>Estado:</strong> <?php echo htmlspecialchars($cuarto['estado_cuarto'] ?? 'Disponible'); ?></p>
+            <p><strong>Precio:</strong> S/.<?php echo number_format($cuarto['precio'], 2); ?></p>
+            <p><strong>Tamaño:</strong> <?php echo number_format($cuarto['metroscuadrados'], 2); ?> m²</p>
         </div>
 
         <!-- Calificaciones y Comentarios -->
-        <h2 class="mt-4">Opiniones del Cuarto</h2>
+        <h3 class="mt-5">Opiniones del Cuarto</h3>
         <div class="row">
             <!-- Resumen de Calificaciones -->
             <div class="col-md-4 ratings-summary">
-                <h3>Calificación General</h3>
-                <?php $calificacion = isset($cuarto['calificacion_promedio']) ? number_format($cuarto['calificacion_promedio'], 1) : 'No disponible';
-                echo '<p><strong>' . $calificacion . '</strong> de 5 estrellas</p>';?>
+                <h4>Calificación General</h4>
+                <p><strong><?php echo ($cuarto['calificacion_promedio'] !== null) ? number_format($cuarto['calificacion_promedio'], 1) : 'No disponible'; ?></strong> de 5 estrellas</p>
 
                 <p><?php echo $total_calificaciones; ?> calificaciones en total</p>
                 <?php
                 for ($i = 5; $i >= 1; $i--) {
                     $porcentaje = ($total_calificaciones > 0) ? ($calificaciones[$i] / $total_calificaciones) * 100 : 0;
-                    echo '<div class="d-flex align-items-center">';
-                    echo '<span>' . $i . ' estrellas</span>';
-                    echo '<div class="progress flex-grow-1 mx-2">';
+                    echo '<div class="d-flex align-items-center mb-2">';
+                    echo '<span class="me-2">' . $i . ' estrellas</span>';
+                    echo '<div class="progress flex-grow-1 me-2">';
                     echo '<div class="progress-bar" role="progressbar" style="width: ' . $porcentaje . '%;" aria-valuenow="' . $porcentaje . '" aria-valuemin="0" aria-valuemax="100"></div>';
                     echo '</div>';
                     echo '<span>' . $calificaciones[$i] . '</span>';
@@ -261,16 +380,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['agregar_opinion'])) {
                 <?php
                 if ($result_reseñas->num_rows > 0) {
                     while($reseña = $result_reseñas->fetch_assoc()) {
-                        echo '<div class="media mb-3">';
-                        echo '<div class="media-body">';
-                        echo '<h5 class="mt-0">' . htmlspecialchars($reseña['nombre']) . ' - ' . $reseña['calificacion'] . ' estrellas</h5>';
-                        echo '<p>' . htmlspecialchars($reseña['comentario']); '</p>';
-                        echo '<small class="text-muted">Fecha: ' . date('d/m/Y', strtotime($reseña['fecha'])) . '</small>';
+                        echo '<div class="opinion-card">';
+                        echo '<div class="d-flex justify-content-between align-items-center">';
+                        echo '<h5>' . htmlspecialchars($reseña['nombre']) . '</h5>';
+                        echo '<span>';
+                        for ($j = 0; $j < $reseña['calificacion']; $j++) {
+                            echo '<i class="fas fa-star text-warning"></i>';
+                        }
+                        for ($j = $reseña['calificacion']; $j < 5; $j++) {
+                            echo '<i class="far fa-star text-warning"></i>';
+                        }
+                        echo '</span>';
                         echo '</div>';
+                        echo '<p>' . nl2br(htmlspecialchars($reseña['comentario'])) . '</p>';
+                        echo '<small class="text-muted">Fecha: ' . date('d/m/Y', strtotime($reseña['fecha'])) . '</small>';
                         echo '</div>';
                     }
                 } else {
-                    echo '<p>Aún no hay opiniones para este cuarto.</p>';
+                    echo '<p class="text-center">Aún no hay opiniones para este cuarto.</p>';
                 }
                 ?>
             </div>
@@ -280,37 +407,45 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['agregar_opinion'])) {
         // Si el estudiante ha iniciado sesión, puede agregar una opinión
         if (isset($_SESSION['tipo_usuario']) && $_SESSION['tipo_usuario'] == 'estudiante') {
             ?>
-            <h3>Agregar Opinión</h3>
-            <?php if (isset($error_opinion)) { echo '<div class="alert alert-danger">'.$error_opinion.'</div>'; } ?>
-            <form action="" method="POST">
-                <div class="form-group">
-                    <label for="calificacion">Calificación:</label>
-                    <select name="calificacion" class="form-control" required>
-                        <option value="5">5 estrellas</option>
-                        <option value="4">4 estrellas</option>
-                        <option value="3">3 estrellas</option>
-                        <option value="2">2 estrellas</option>
-                        <option value="1">1 estrella</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="comentario">Comentario:</label>
-                    <textarea name="comentario" class="form-control" rows="4" required></textarea>
-                </div>
-                <button type="submit" name="agregar_opinion" class="btn btn-primary">Enviar Opinión</button>
-            </form>
+            <div class="form-opinion">
+                <h4>Agregar Opinión</h4>
+                <?php if (isset($error_opinion)) { echo '<div class="alert alert-danger">' . htmlspecialchars($error_opinion) . '</div>'; } ?>
+                <form action="" method="POST">
+                    <div class="mb-3">
+                        <label for="calificacion" class="form-label">Calificación:</label>
+                        <select name="calificacion" id="calificacion" class="form-select" required>
+                            <option value="" disabled selected>Selecciona una calificación</option>
+                            <option value="5">5 estrellas</option>
+                            <option value="4">4 estrellas</option>
+                            <option value="3">3 estrellas</option>
+                            <option value="2">2 estrellas</option>
+                            <option value="1">1 estrella</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="comentario" class="form-label">Comentario:</label>
+                        <textarea name="comentario" id="comentario" class="form-control" rows="4" required></textarea>
+                    </div>
+                    <button type="submit" name="agregar_opinion" class="btn btn-danger"><i class="fas fa-paper-plane me-2"></i>Enviar Opinión</button>
+                </form>
+            </div>
             <?php
         } else {
-            echo '<p>Inicia sesión como estudiante para agregar una opinión.</p>';
+            echo '<p class="mt-4">Inicia sesión como estudiante para agregar una opinión.</p>';
         }
         ?>
     </div>
 
-    <!-- Scripts de Bootstrap y jQuery -->
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <!-- Popper.js necesario para los componentes de Bootstrap -->
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-    <!-- Bootstrap JS -->
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <!-- Footer -->
+    <footer class="bg-light text-center text-lg-start mt-5">
+        <div class="text-center p-3" style="background-color: #dc3545; color: white;">
+            © <?php echo date("Y"); ?> AlquilaYA! - Todos los derechos reservados.
+        </div>
+    </footer>
+
+    <!-- Scripts de Bootstrap 5 y dependencias -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Font Awesome para íconos -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
 </body>
 </html>

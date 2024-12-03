@@ -9,8 +9,6 @@ if (!isset($_SESSION['tipo_usuario']) || $_SESSION['tipo_usuario'] != 'arrendado
     exit();
 }
 
-$id_arrendador = $_SESSION['id_arrendador'];
-
 if (isset($_GET['id_casa'])) {
     $id_casa = (int)$_GET['id_casa'];
 } else {
@@ -18,56 +16,59 @@ if (isset($_GET['id_casa'])) {
     exit();
 }
 
-// Verificar que la casa pertenece al arrendador
-$sql_casa = "SELECT * FROM casas WHERE id_casa = ? AND id_arrendador = ?";
-$stmt_casa = $conn->prepare($sql_casa);
-$stmt_casa->bind_param("ii", $id_casa, $id_arrendador);
-$stmt_casa->execute();
-$result_casa = $stmt_casa->get_result();
+// Iniciar una transacción
+$conn->begin_transaction();
 
-if ($result_casa->num_rows == 0) {
-    echo "No tienes permiso para eliminar esta casa.";
-    exit();
-} else {
-    $casa = $result_casa->fetch_assoc();
-}
+try {
+    // 1. Obtener todos los cuartos asociados a la casa
+    $sql_get_cuartos = "SELECT id_cuarto FROM cuartos WHERE id_casa = ?";
+    $stmt_get_cuartos = $conn->prepare($sql_get_cuartos);
+    $stmt_get_cuartos->bind_param("i", $id_casa);
+    $stmt_get_cuartos->execute();
+    $result_cuartos = $stmt_get_cuartos->get_result();
 
-// Eliminar la casa y sus cuartos asociados
-// Primero, eliminar las imágenes de los cuartos y la casa
-// Eliminar imágenes de cuartos
-$sql_cuartos = "SELECT * FROM cuartos WHERE id_casa = ?";
-$stmt_cuartos = $conn->prepare($sql_cuartos);
-$stmt_cuartos->bind_param("i", $id_casa);
-$stmt_cuartos->execute();
-$result_cuartos = $stmt_cuartos->get_result();
+    while ($cuarto = $result_cuartos->fetch_assoc()) {
+        $id_cuarto = $cuarto['id_cuarto'];
 
-while ($cuarto = $result_cuartos->fetch_assoc()) {
-    if (!empty($cuarto['imagen']) && file_exists('../uploads/' . $cuarto['imagen'])) {
-        unlink('../uploads/' . $cuarto['imagen']);
+        // 2. Eliminar las valoraciones relacionadas con el cuarto
+        $sql_delete_valoraciones = "DELETE FROM valoracion_cuartos WHERE id_cuarto = ?";
+        $stmt_valoraciones = $conn->prepare($sql_delete_valoraciones);
+        $stmt_valoraciones->bind_param("i", $id_cuarto);
+        $stmt_valoraciones->execute();
+
+        // 3. Eliminar los detalles del cuarto
+        $sql_delete_detalles = "DELETE FROM detalles_cuartos WHERE id_cuarto = ?";
+        $stmt_detalles = $conn->prepare($sql_delete_detalles);
+        $stmt_detalles->bind_param("i", $id_cuarto);
+        $stmt_detalles->execute();
+
+        // 4. Eliminar el cuarto
+        $sql_delete_cuarto = "DELETE FROM cuartos WHERE id_cuarto = ?";
+        $stmt_cuarto = $conn->prepare($sql_delete_cuarto);
+        $stmt_cuarto->bind_param("i", $id_cuarto);
+        $stmt_cuarto->execute();
     }
-}
 
-// Eliminar imágenes de la casa
-if (!empty($casa['imagen']) && file_exists('../uploads/' . $casa['imagen'])) {
-    unlink('../uploads/' . $casa['imagen']);
-}
+    // 5. Eliminar las valoraciones relacionadas con la casa (si existen)
+    $sql_delete_valoraciones_casa = "DELETE FROM valoracion_casas WHERE id_casa = ?";
+    $stmt_valoraciones_casa = $conn->prepare($sql_delete_valoraciones_casa);
+    $stmt_valoraciones_casa->bind_param("i", $id_casa);
+    $stmt_valoraciones_casa->execute();
 
-// Eliminar registros de la base de datos
-// Eliminar cuartos
-$sql_delete_cuartos = "DELETE FROM cuartos WHERE id_casa = ?";
-$stmt_delete_cuartos = $conn->prepare($sql_delete_cuartos);
-$stmt_delete_cuartos->bind_param("i", $id_casa);
-$stmt_delete_cuartos->execute();
+    // 6. Eliminar la casa
+    $sql_delete_casa = "DELETE FROM casas WHERE id_casa = ?";
+    $stmt_casa = $conn->prepare($sql_delete_casa);
+    $stmt_casa->bind_param("i", $id_casa);
+    $stmt_casa->execute();
 
-// Eliminar la casa
-$sql_delete_casa = "DELETE FROM casas WHERE id_casa = ?";
-$stmt_delete_casa = $conn->prepare($sql_delete_casa);
-$stmt_delete_casa->bind_param("i", $id_casa);
+    // Confirmar la transacción
+    $conn->commit();
 
-if ($stmt_delete_casa->execute()) {
-    header("Location: dashboard.php");
+    header("Location: dashboard.php?message=Casa eliminada exitosamente");
     exit();
-} else {
-    echo "Error al eliminar la casa.";
+} catch (Exception $e) {
+    // Revertir la transacción en caso de error
+    $conn->rollback();
+    echo "Error al eliminar la casa: " . $e->getMessage();
 }
 ?>
