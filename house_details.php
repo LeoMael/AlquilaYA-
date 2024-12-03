@@ -723,7 +723,6 @@ $casas_coordenadas_json = json_encode( $casas_coordenadas);
 
             // Crear un marcador para cada casa
             var marker = L.marker([lat, lon]).addTo(map).bindPopup('<strong>' + direccion + '</strong>');
-            alert(lon + "  que fue " + lat);
 
             // Cambiar el icono del marcador seleccionado
             marker.setIcon(L.icon({
