@@ -129,6 +129,21 @@ INSERT INTO `alquileres` (`id_alquiler`, `id_cuarto`, `id_estudiante`, `id_estad
 (9, 9, 9, 2),
 (10, 10, 10, 2);
 
+CREATE TABLE `imagenes_cuartos` (
+  `id_imagen` INT AUTO_INCREMENT PRIMARY KEY,
+  `id_cuarto` INT NOT NULL,
+  `imagen` VARCHAR(255) NOT NULL,
+  FOREIGN KEY (`id_cuarto`) REFERENCES `cuartos`(`id_cuarto`) ON DELETE CASCADE
+);
+
+INSERT INTO `imagenes_cuartos` (`id_cuarto`, `imagen`) VALUES
+(1, 'cuarto1_img1.jpg'),
+(1, 'cuarto1_img2.jpg'),
+(2, 'cuarto2_img1.jpg'),
+(3, 'cuarto3_img1.jpg'),
+(3, 'cuarto3_img2.jpg'),
+(3, 'cuarto3_img3.jpg');
+
 ALTER TABLE `estudiantes` MODIFY `id_estudiante` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 ALTER TABLE `arrendadores` MODIFY `id_arrendador` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 ALTER TABLE `casas` MODIFY `id_casa` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
@@ -138,3 +153,16 @@ ALTER TABLE `detalles_cuartos` MODIFY `id_detalle_cuarto` int(11) NOT NULL AUTO_
 ALTER TABLE `valoracion_casas` MODIFY `id_valoracion_casa` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 ALTER TABLE `valoracion_cuartos` MODIFY `id_valoracion_cuarto` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 ALTER TABLE `alquileres` MODIFY `id_alquiler` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+ALTER TABLE `alquileres`
+ADD COLUMN `fecha_inicio` DATE NOT NULL,
+ADD COLUMN `fecha_fin` DATE NULL;
+ALTER TABLE `valoracion_casas`
+ADD COLUMN `id_valoracion` INT AUTO_INCREMENT PRIMARY KEY;
+ALTER TABLE `valoracion_cuartos`
+ADD COLUMN `id_valoracion` INT AUTO_INCREMENT PRIMARY KEY;
+ALTER TABLE `casas`
+ADD COLUMN `descripcion` TEXT AFTER `direccion`;
+
+ALTER TABLE `casas` ADD COLUMN `imagen` VARCHAR(255) AFTER `longitud`;
+ALTER TABLE `cuartos` ADD COLUMN `imagen` VARCHAR(255) AFTER `metroscuadrados`;
+

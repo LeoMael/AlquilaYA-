@@ -9,7 +9,7 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 // Asegúrate de que `window.casasCoordenadas` esté disponible
 const coordenadas = window.casasCoordenadas;
 window.casasCoordenadas.forEach(casa => {
-    L.marker([casa.latitud, casa.logitud]).addTo(map).bindPopup(`Dirección: ${casa.direccion}`);
+    L.marker([casa.latitud, casa.longitud]).addTo(map).bindPopup(`Dirección: ${casa.direccion}`);
 });
 // Colocar marcadores para los restaurantes
 
