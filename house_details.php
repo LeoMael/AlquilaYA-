@@ -57,7 +57,7 @@ $stmt_reseñas->bind_param("i", $id_casa);
 $stmt_reseñas->execute();
 $result_reseñas = $stmt_reseñas->get_result();
 
-// Calcular porcentajes de calificaciones
+
 $sql_calificaciones = "SELECT calificacion, COUNT(*) as cantidad
                        FROM valoracion_casas
                        WHERE id_casa = ?
@@ -97,6 +97,35 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['agregar_reseña'])) {
         $error_reseña = "Debes iniciar sesión como estudiante para agregar una reseña.";
     }
 }
+
+ $aver = "SELECT latitud, longitud from casas where $id_casa = id_casa";
+ $result_casas_todas = $conn->query( $aver);
+
+// Verificar si la consulta fue exitosa
+if (!$result_casas_todas) {
+    die('Error en la consulta de casas completas: ' . $conn->error);  // Manejo de errores si la consulta falla
+}
+
+// Array para almacenar las coordenadas de todas las casas
+$casas_coordenadas = []; // Nuevo array para latitud y longitud
+
+// Verificar si hay resultados
+if ($result_casas_todas) {
+    while ($fila = $result_casas_todas->fetch_assoc()) {
+        // Verificar y agregar solo latitud y longitud si están definidas y son válidas
+        if (is_numeric($fila['latitud']) && is_numeric($fila['longitud'])) {
+            $casas_coordenadas[] = [
+                'latitud' => (float)$fila['latitud'], // Almacena latitud
+                'longitud' => (float)$fila['longitud'], // Almacena longitud
+            ];
+        }
+    }
+} else {
+    // Manejo de errores si la consulta falla
+    $casas_coordenadas = [];
+}
+$casas_coordenadas_json = json_encode( $casas_coordenadas);
+
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -105,10 +134,28 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['agregar_reseña'])) {
     <title>Detalles de la Casa - AlquilaYA!</title>
     <!-- Enlaces a CSS de Bootstrap para estilos rápidos -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <!-- Tu archivo de estilos personalizado -->
-    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Kaushan+Script&display=swap" rel="stylesheet">
+
     <style>
         /* Estilos personalizados */
+        .sticky-map {
+            position: fixed;
+            top: 60px;
+            right: 0;
+            width: 50%;
+            height: calc(70% - 80px);
+            overflow: hidden;
+        }
+        .selected-marker {
+            filter: hue-rotate(140deg);
+        }
+        .left-content {
+            margin-right: 50%;
+        }
         .image-section {
             max-width: 300px;
         }
@@ -172,10 +219,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['agregar_reseña'])) {
                 <p><?php echo $casa['descripcion']; ?></p>
             </div>
             <!-- Mapa -->
-            <div class="map-section">
-                <div id="map">
-                    <!-- El mapa se cargará aquí -->
-                </div>
+            <div class="col-md-6 sticky-map">
+                <div id="mapid" style="height: 100%;"></div>
             </div>
         </div>
 
@@ -276,30 +321,55 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['agregar_reseña'])) {
         ?>
     </div>
 
-    <!-- Scripts de Bootstrap y jQuery -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <!-- Popper.js necesario para los componentes de Bootstrap -->
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <!-- Script para el mapa (puedes integrar tu mapp.js aquí) -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
+
     <script>
-        // Verificar si las coordenadas están disponibles y son válidas
-        <?php if (is_numeric($casa['latitud']) && is_numeric($casa['longitud'])): ?>
-            const map = L.map('map').setView([<?php echo $casa['latitud']; ?>, <?php echo $casa['longitud']; ?>], 15);
+        function centrarMapa(lat, lon) {
+        map.setView([lat, lon], 15); // Ajusta el zoom según lo necesites
+        }
+        var map = L.map('mapid').setView([-15.840221, -70.021881], 20);
+        // Agregar el mapa de OpenStreetMap
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
 
-            // Agregar el mapa de OpenStreetMap
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-              attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            }).addTo(map);
+        var casas = <?php echo $casas_coordenadas_json; ?>;
 
-            // Agregar marcador para la casa
-            L.marker([<?php echo $casa['latitud']; ?>, <?php echo $casa['longitud']; ?>]).addTo(map)
-                .bindPopup(`Dirección: <?php echo $casa['direccion']; ?>`);
-        <?php else: ?>
-            // Si no hay coordenadas válidas, mostrar mensaje
-            document.getElementById('map').innerHTML = '<p>Ubicación no disponible</p>';
-        <?php endif; ?>
+        // Agregar los marcadores al mapa
+        casas.forEach(function(casa) {
+            var lat = casa.latitud;
+            var lon = casa.longitud;
+            var idCasa = casa.id_casa;
+            var direccion = casa.direccion;
+
+            // Crear un marcador para cada casa
+            var marker = L.marker([lat, lon]).addTo(map).bindPopup('<strong>' + direccion + '</strong>');
+            alert(lon + "  que fue " + lat);
+
+            // Cambiar el icono del marcador seleccionado
+            marker.setIcon(L.icon({
+                iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png', // Icono seleccionado
+                iconSize: [30, 45],  
+                iconAnchor: [15, 45],
+                popupAnchor: [1, -36],
+                shadowSize: [41, 41],
+                className: 'selected-marker'  // Clase CSS personalizada para cambiar el color
+            }));
+
+            // Actualizar la referencia del marcador seleccionado
+            marcadorSeleccionado = marker;
+
+            // Centrar el mapa en las coordenadas del marcador seleccionado
+            centrarMapa(lat, lon);
+
+            // Guardar el ID de la casa seleccionada en localStorage
+            localStorage.setItem('idCasaSeleccionada', idCasaSeleccionada);
+        });
     </script>
+
 </body>
 </html>

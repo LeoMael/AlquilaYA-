@@ -40,7 +40,7 @@ if ($id_primero_paginacion === null) {
 // Consulta para obtener casas con paginación y que la casa seleccionada aparezca primero
 $sql_casas = "SELECT casas.id_casa, casas.direccion, detalles_casas.descripcion, 
                      AVG(valoracion_casas.calificacion) as calificacion_promedio,
-                     casas.latitud, casas.logitud  
+                     casas.latitud, casas.longitud  
               FROM casas
               LEFT JOIN detalles_casas ON casas.id_casa = detalles_casas.id_casa
               LEFT JOIN valoracion_casas ON casas.id_casa = valoracion_casas.id_casa
@@ -59,7 +59,7 @@ if (!$result_casas) {
 }
 
 // Nueva consulta para obtener todas las casas (sin paginación ni filtrado de precios)
-$sql_casas_todas = "SELECT casas.id_casa, casas.direccion, casas.latitud, casas.logitud  
+$sql_casas_todas = "SELECT casas.id_casa, casas.direccion, casas.latitud, casas.longitud  
                      FROM casas
                      LEFT JOIN detalles_casas ON casas.id_casa = detalles_casas.id_casa
                      LEFT JOIN valoracion_casas ON casas.id_casa = valoracion_casas.id_casa
