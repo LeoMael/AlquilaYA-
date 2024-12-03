@@ -1,1 +1,15 @@
-ECHO est  activado.
+.custom-icon {
+    background-color: #FF6347; /* Color de fondo (rojo tomate) */
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    text-align: center;
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    line-height: 30px;
+}
+
+.custom-icon .marker {
+    color: white; /* Color del texto en el icono */
+}
