@@ -1,3 +1,4 @@
+
 <?php
 // index.php
 include 'includes/db_connect.php';
@@ -80,10 +81,10 @@ $casas_coordenadas = []; // Nuevo array para latitud y longitud
 if ($result_casas_todas) {
     while ($fila = $result_casas_todas->fetch_assoc()) {
         // Verificar y agregar solo latitud y longitud si están definidas y son válidas
-        if (is_numeric($fila['latitud']) && is_numeric($fila['logitud'])) {
+        if (is_numeric($fila['latitud']) && is_numeric($fila['longitud'])) {
             $casas_coordenadas[] = [
                 'latitud' => (float)$fila['latitud'], // Almacena latitud
-                'logitud' => (float)$fila['logitud'], // Almacena longitud
+                'longitud' => (float)$fila['longitud'], // Almacena longitud
                 'direccion' => $fila['direccion'],   // Almacena la dirección de la casa
                 'id_casa' => $fila['id_casa'],
             ];
@@ -109,6 +110,11 @@ $casas_coordenadas_json = json_encode($casas_coordenadas);
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
+    <!-- Font Awesome para íconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Enlace a la fuente Kaushan Script -->
+    <link href="https://fonts.googleapis.com/css2?family=Kaushan+Script&display=swap" rel="stylesheet">
+    
     <style>
         /* Hacer que el mapa sea fijo cuando se hace scroll */
         .sticky-map {
@@ -119,7 +125,6 @@ $casas_coordenadas_json = json_encode($casas_coordenadas);
             height: calc(100% - 80px);
             overflow: hidden;
         }
-
         .left-content {
             margin-right: 50%;
         }
@@ -128,40 +133,170 @@ $casas_coordenadas_json = json_encode($casas_coordenadas);
             filter: hue-rotate(140deg);
         }
         .card-body:hover {
-    background-color: #dcdcdc; /* Fondo claro cuando el ratón pasa */
-    cursor: pointer; /* Cambiar el cursor a puntero */
-    }
+        background-color: #dcdcdc; /* Fondo claro cuando el ratón pasa */
+        cursor: pointer; /* Cambiar el cursor a puntero */
+        }
 
-    /* Efecto cuando la tarjeta es clickeada */
-    .card-body.selected {
-        background-color: #dcdcdc; /* Gris claro */
-        cursor: pointer; /* Mantener el cursor como puntero para la interacción */
-    }
-
+        /* Efecto cuando la tarjeta es clickeada */
+        .card-body.selected {
+            background-color: #dcdcdc; /* Gris claro */
+            cursor: pointer; /* Mantener el cursor como puntero para la interacción */
+        }
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Arial', sans-serif;
+        }
+        /* Navegación */
+        .navbar-brand {
+            font-family: 'Kaushan Script', cursive;
+            font-size: 1.8rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            color: #dc3545 !important; /* text-danger */
+        }
+        .navbar-light .navbar-nav .nav-link {
+            color: #495057;
+            font-weight: 600;
+        }
+        .navbar-light .navbar-nav .nav-link.text-primary {
+            color: #0d6efd !important;
+        }
+        .navbar-light .navbar-nav .nav-link.text-success {
+            color: #198754 !important;
+        }
+        .navbar-light .navbar-nav .nav-link.text-danger {
+            color: #dc3545 !important;
+        }
+        .navbar-light .navbar-nav .nav-link:hover {
+            color: #0d6efd !important;
+        }
+        /* Separador debajo de la navbar */
+        .navbar {
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            background-color: #ffffff !important; /* Fondo blanco */
+        }
+        /* Tarjetas de casas */
+        .card {
+            transition: transform 0.2s;
+            cursor: pointer;
+        }
+        .card:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        .card-img-top {
+            height: 200px;
+            object-fit: cover;
+            border-top-left-radius: calc(.25rem - 1px);
+            border-top-right-radius: calc(.25rem - 1px);
+        }
+        /* Filtros */
+        .modal-header {
+            background-color: #0d6efd;
+            color: white;
+        }
+        /* Paginación */
+        .pagination .page-link {
+            color: #0d6efd;
+        }
+        .pagination .active .page-link {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+            color: white;
+        }
+        /* Botón de contacto */
+        .btn-contact {
+            background-color: #25D366;
+            color: white;
+        }
+        .btn-contact:hover {
+            background-color: #128C7E;
+            color: white;
+        }
+        /* Mejoras en la tarjeta */
+        .card-body {
+            display: flex;
+            flex-direction: column;
+            font-family: 'Inria Sans', sans-serif; /* Aplicar Inria Sans */
+        }
+        .card-body:hover {
+            background-color: #f1f1f1;
+        }
+        /* Responsividad del mapa */
+        @media (max-width: 767.98px) {
+            .sticky-map {
+                position: static;
+                height: 300px;
+                margin-top: 20px;
+            }
+            .left-content {
+                margin-right: 0;
+            }
+        }
+        /* Texto central en Inika */
+        .navbar-text {
+            font-family: 'Inika', serif;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+        }
+        /* Icono al lado del texto central */
+        .navbar-text .fa-map-marker-alt {
+            margin-right: 8px;
+            color: #0d6efd;
+        }
+        .navbar-light .navbar-nav .nav-link {
+            color: #495057;
+            font-weight: 600;
+            font-family: 'Inria Sans', sans-serif; /* Aplicar Inria Sans */
+        }
+        .titulo-puno {
+            font-size: 1.4rem;
+            font-family: 'Josefin Slab', serif;
+        }
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <a class="navbar-brand" href="#">AlquilaYA!</a>
-        <div class="collapse navbar-collapse justify-content-center">
-            <span class="navbar-text">
-                Encuentra tu alojamiento ideal en Puno
-            </span>
-        </div>
-        <div class="navbar-nav">
-            <?php
-            if (isset($_SESSION['tipo_usuario'])) {
-                if ($_SESSION['tipo_usuario'] == 'estudiante') {
-                    echo '<a class="nav-item nav-link" href="estudiante/profile.php">Mi Perfil</a>';
-                } elseif ($_SESSION['tipo_usuario'] == 'arrendador') {
-                    echo '<a class="nav-item nav-link" href="arrendador/dashboard.php">Mi Panel</a>';
-                }
-                echo '<a class="nav-item nav-link" href="logout.php">Cerrar Sesión</a>';
-            } else {
-                echo '<a class="nav-item nav-link" href="login.php">Iniciar Sesión</a>';
-                echo '<a class="nav-item nav-link" href="register.php">Registrarse</a>';
-            }
-            ?>
+    <!-- Barra de Navegación -->
+    <nav class="navbar navbar-expand-lg navbar-light border-bottom">
+        <div class="container">
+            <!-- Logo -->
+            <a class="navbar-brand text-danger" href="index.php">
+                AlquilaYA!
+            </a>
+
+            <!-- Botón de colapso para dispositivos pequeños -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <!-- Menú -->
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <!-- Texto centrado con ícono -->
+                <div class="mx-auto d-none d-lg-flex align-items-center">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span class="navbar-text text-secondary fs-5 ms-2">
+                        Encuentra tu alojamiento ideal en Puno
+                    </span>
+                </div>
+                
+                <!-- Opciones del menú -->
+                <ul class="navbar-nav ms-auto">
+                    <?php
+                    if (isset($_SESSION['tipo_usuario'])) {
+                        if ($_SESSION['tipo_usuario'] == 'estudiante') {
+                            echo '<li class="nav-item"><a class="nav-link text-primary fw-semibold" href="estudiante/profile.php">Mi Perfil</a></li>';
+                        } elseif ($_SESSION['tipo_usuario'] == 'arrendador') {
+                            echo '<li class="nav-item"><a class="nav-link text-primary fw-semibold" href="arrendador/dashboard.php">Mi Panel</a></li>';
+                        }
+                        echo '<li class="nav-item"><a class="nav-link text-danger fw-semibold" href="logout.php">Cerrar Sesión</a></li>';
+                    } else {
+                        echo '<li class="nav-item"><a class="nav-link text-primary fw-semibold" href="login.php">Iniciar Sesión</a></li>';
+                        echo '<li class="nav-item"><a class="nav-link text-success fw-semibold" href="register.php">Registrarse</a></li>';
+                    }
+                    ?>
+                </ul>
+            </div>
         </div>
     </nav>
 
@@ -171,12 +306,11 @@ $casas_coordenadas_json = json_encode($casas_coordenadas);
             <!-- Lado Izquierdo -->
             <div class="col-md-6 left-content">
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h3>Casas Disponibles (<?php echo $total_casas; ?>)</h3>
-                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#filtroModal">
-                        Filtro
+                    <h3 class="titulo-puno"><?php echo $total_casas; ?> Lugares en Puno</h3>
+                    <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#filtroModal">
+                    <i class="fas fa-filter me-2"></i> Filtro
                     </button>
                 </div>
-
                 <!-- Modal de Filtro -->
                 <div class="modal fade" id="filtroModal" tabindex="-1" aria-labelledby="filtroModalLabel" aria-hidden="true">
                     <div class="modal-dialog">
@@ -219,16 +353,45 @@ $casas_coordenadas_json = json_encode($casas_coordenadas);
                             $sql_precios = "SELECT MIN(precio) as precio_min, MAX(precio) as precio_max, COUNT(*) as total_cuartos FROM cuartos WHERE id_casa = $id_casa";
                             $result_precios = $conn->query($sql_precios);
                             $precios = $result_precios->fetch_assoc();
+                            // Obtener reseña o comentario más reciente
+                            $sql_comentario = "SELECT comentario FROM valoracion_casas WHERE id_casa = $id_casa ORDER BY fecha DESC LIMIT 1";
+                            $result_comentario = $conn->query($sql_comentario);
+                            $comentario = $result_comentario->fetch_assoc();
 
-                            if (($precio_min === NULL || $precios['precio_min'] >= $precio_min) && ($precio_max === NULL || $precios['precio_max'] <= $precio_max)) {
+                            // Obtener imagen de la casa o una imagen por defecto
+                            $imagen_casa = !empty($casa['imagen']) && file_exists('uploads/' . $casa['imagen']) ? 'uploads/' . $casa['imagen'] : 'assets/default_house.jpg';
+
+                            // Calificación promedio
+                            $calificacion_promedio = isset($casa['calificacion_promedio']) ? number_format($casa['calificacion_promedio'], 1) : '0.0';
+                            
+                            // Descripción corta
+                            $descripcion_casa = isset($casa['descripcion']) ? htmlspecialchars(substr($casa['descripcion'], 0, 100)) . '...' : 'No hay descripción disponible.';
+                            
+                            if (($precio_min == NULL || $precios['precio_min'] >= $precio_min) && ($precio_max == NULL || $precios['precio_max'] <= $precio_max)) {
                                 // Mostrar la casa solo si pasa el filtro
-                                echo "<div class='card mb-3' id='card-{$id_casa}'>";
-                                echo "<div class='card-body' data-id-casa='{$id_casa}'>";
-                                echo "<h5 class='card-title'>{$casa['direccion']}</h5>";
-                                echo "<p class='card-text'>{$casa['descripcion']}</p>";
-                                echo "<p class='card-text'>Precio: S/. {$precios['precio_min']} - S/. {$precios['precio_max']}</p>";
-                                echo "</div>";
-                                echo "</div>";
+
+                                echo '<div class="card mb-3">';
+                                echo '  <div class="row g-0">';
+                                echo '      <div class="col-md-4">';
+                                echo '          <img src="' . $imagen_casa . '" class="img-fluid rounded-start" alt="Foto de la casa">';
+                                echo '      </div>';
+                                echo '      <div class="col-md-8">';
+                                echo "          <div class='card-body' data-id-casa='{$id_casa}'>";
+                                echo '              <h5 class="card-title">' . $casa['direccion'] . '</h5>';
+                                echo '              <p class="card-text">';
+                                echo '                  <i class="fas fa-star text-warning"></i> ' . $calificacion_promedio . ' / 5 estrellas';
+                                echo '              </p>';
+                                echo '              <p class="card-text">' . $descripcion_casa . '</p>';
+                                echo '              <p class="card-text"><strong>Rango de precios:</strong> S/.' . $precios['precio_min'] . ' - S/.' . $precios['precio_max'] . '</p>';
+                                echo '              <p class="card-text"><strong>Cuartos disponibles:</strong> ' . $precios['total_cuartos'] . '</p>';
+                                if ($comentario) {
+                                    echo '              <p class="card-text"><em>"' . substr($comentario['comentario'], 0, 50) . '..."</em></p>';
+                                }
+                                echo '              <a href="house_details.php?id_casa=' . $id_casa . '" class="btn btn-danger">Ver detalles</a>';
+                                echo '          </div>';
+                                echo '      </div>';
+                                echo '  </div>';
+                                echo '</div>';
                                 $conta++;
 
                             }
@@ -280,7 +443,7 @@ $casas_coordenadas_json = json_encode($casas_coordenadas);
     var marcadorSeleccionado = null; // Declaración fuera para que sea accesible globalmente
 
     // Inicializar mapa
-    var map = L.map('mapid').setView([<?php echo $casas_coordenadas[0]['latitud']; ?>, <?php echo $casas_coordenadas[0]['logitud']; ?>], 15);
+    var map = L.map('mapid').setView([<?php echo $casas_coordenadas[0]['latitud']; ?>, <?php echo $casas_coordenadas[0]['longitud']; ?>], 15);
 
     // Añadir capa de mapa
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -313,7 +476,7 @@ $casas_coordenadas_json = json_encode($casas_coordenadas);
                 casas.forEach(function(casa) {
                     if (casa.id_casa == idCasaSeleccionada) {
                         var lat = casa.latitud;
-                        var lon = casa.logitud;
+                        var lon = casa.longitud;
 
                         // Si ya hay un marcador seleccionado, no restablecerlo
                         if (marcadorSeleccionado) {
@@ -360,7 +523,7 @@ $casas_coordenadas_json = json_encode($casas_coordenadas);
     // Agregar los marcadores al mapa
     casas.forEach(function(casa) {
         var lat = casa.latitud;
-        var lon = casa.logitud;
+        var lon = casa.longitud;
         var idCasa = casa.id_casa;
         var direccion = casa.direccion;
 
