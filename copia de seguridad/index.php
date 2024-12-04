@@ -1,26 +1,3 @@
-Para probar el inicio de sesión, puedes utilizar los siguientes usuarios:
-
-Estudiantes
-
-Usuario 1:
-Email: carlos.perez@example.com
-Contraseña: password
-
-Usuario 2:
-
-Email: maria.gonzalez@example.com
-Contraseña: password
-
-Arrendadores
-Usuario 1:
-
-Email: roberto.martinez@example.com
-Contraseña: password
-Usuario 2:
-
-Email: elena.hernandez@example.com
-Contraseña: password
-
 <?php
 // index.php
 include 'includes/db_connect.php';
@@ -54,24 +31,26 @@ $total_paginas = ceil($total_casas / $casas_por_pagina);
 // Obtener casas para la página actual
 $sql_casas = "SELECT casas.id_casa, casas.direccion, detalles_casas.descripcion, 
                      AVG(valoracion_casas.calificacion) as calificacion_promedio,
-                     casas.latitud, casas.logitud  
+                     casas.latitud, casas.longitud  
               FROM casas
               LEFT JOIN detalles_casas ON casas.id_casa = detalles_casas.id_casa
               LEFT JOIN valoracion_casas ON casas.id_casa = valoracion_casas.id_casa
               GROUP BY casas.id_casa
               LIMIT $casas_por_pagina OFFSET $offset";
-
 $result_casas = $conn->query($sql_casas);
+?>
+<?php
 
 // Almacenar los datos en un array
-$casas_coordenadas = []; // Nuevo array para latitud y logitud
+$casas_coordenadas = []; // Nuevo array para latitud y longitud
 if ($result_casas) {
     while ($fila = $result_casas->fetch_assoc()) {
-        // Verificar y agregar solo latitud y logitud si están definidas y son válidas
-        if (is_numeric($fila['latitud']) && is_numeric($fila['logitud'])) {
+        // Verificar y agregar solo latitud y longitud si están definidas y son válidas
+        if (is_numeric($fila['latitud']) && is_numeric($fila['longitud'])) {
             $casas_coordenadas[] = [
                 'latitud' => (float)$fila['latitud'],
-                'logitud' => (float)$fila['logitud']
+                'longitud' => (float)$fila['longitud'],
+                'direccion' => $fila['direccion'],  // Agregar la dirección de la casa
             ];
         }
     }
@@ -79,7 +58,14 @@ if ($result_casas) {
     // Manejo de errores si la consulta falla
     $casas_coordenadas = [];
 }
+
 $casas_coordenadas_json = json_encode($casas_coordenadas);
+$result_casas = $conn->query($sql_casas);
+
+//echo '<pre>';
+//print_r($casas_coordenadas);
+//echo '</pre>';
+
 ?>
 
 <!DOCTYPE html>
@@ -204,8 +190,12 @@ $casas_coordenadas_json = json_encode($casas_coordenadas);
                         echo '<div class="col-md-8">';
                         echo '<div class="card-body">';
                         echo '<h5 class="card-title">' . $casa['direccion'] . '</h5>';
-                        echo '<p class="card-text">Calificación: ' . number_format($casa['calificacion_promedio'], 1) . ' / 5 estrellas</p>';
-                        echo '<p class="card-text">' . substr($casa['descripcion'], 0, 100) . '...</p>';
+                        $calificacion_promedio = isset($casa['calificacion_promedio']) ? number_format($casa['calificacion_promedio'], 1) : '0.0';
+                        echo '<p class="card-text">Calificación: ' . $calificacion_promedio . ' / 5 estrellas</p>';
+
+                        $descripcion_casa = isset($casa['descripcion']) ? substr($casa['descripcion'], 0, 100) . '...' : 'No hay descripción disponible.';
+                        echo '<p class="card-text">' . $descripcion_casa . '</p>';
+
                         echo '<p class="card-text">Rango de precios: S/.' . $precios['precio_min'] . ' - S/.' . $precios['precio_max'] . '</p>';
                         echo '<p class="card-text">Cuartos disponibles: ' . $precios['total_cuartos'] . '</p>';
                         if ($comentario) {
